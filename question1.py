@@ -18,12 +18,15 @@ from time import time
 
 
 def question1():
-    net = Mininet(controller=Controller)
+    # creating the Mininet object which supports an external controller
+    net = Mininet(controller=RemoteController, link=TCLink)
 
     info( '*** Adding controller\n' )
-    net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6653)
+    # Connecting the controller to Floodlight Openflow port 
+    c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6653)
 
     info( '*** Adding hosts\n' )
+    # Hosts are created with static IP
     h1 = net.addHost('h1', ip='10.0.0.1')
     h2 = net.addHost('h2', ip='10.0.0.2')
     h3 = net.addHost('h3', ip='10.0.0.3')
@@ -40,37 +43,38 @@ def question1():
     s8 = net.addSwitch('s8')
 	
     info( '*** Creating links\n' )
-    net.addLink(h1, s1)
-    net.addLink(h2, s1)
-    net.addLink(h3, s8)
-    net.addLink(h4, s8)
-    net.addLink(s1, s2)
-    net.addLink(s1, s3)
-    net.addLink(s1, s6)
-    net.addLink(s2, s8)
-    net.addLink(s3, s4)
-    net.addLink(s4, s5)
-    net.addLink(s5, s8)
-    net.addLink(s6, s7)
-    net.addLink(s7, s8)
+    # Creating the topology of the whole network under test
+    linkbw = 10
+    net.addLink(h1, s1, bw=linkbw, delay='5ms')
+    net.addLink(h2, s1, bw=linkbw, delay='4ms')
+    net.addLink(h3, s8, bw=linkbw, delay='6ms')
+    net.addLink(h4, s8, bw=linkbw, delay='3ms')
+    net.addLink(s1, s2, bw=linkbw, delay='12ms')
+    net.addLink(s1, s3, bw=linkbw, delay='3ms')
+    net.addLink(s1, s6, bw=linkbw, delay='5ms')
+    net.addLink(s2, s8, bw=linkbw, delay='4ms')
+    net.addLink(s3, s4, bw=linkbw, delay='6ms')
+    net.addLink(s4, s5, bw=linkbw, delay='3ms')
+    net.addLink(s5, s8, bw=linkbw, delay='2ms')
+    net.addLink(s6, s7, bw=linkbw, delay='10ms')
+    net.addLink(s7, s8, bw=linkbw, delay='1ms')
 	
     info( '*** Starting network\n')
+    # Starting the experiment
     net.start()
 	
-	
-    # votre code...
-    net.cmd('pingall')		
-	
-
-
-
+    # Testing network connectivity between all hosts
+    net.pingAll()
+    
+    # Launching an iperf command running in background
+    # between h1 and h3. Output will be printed to file.
+    performanceCommand = 'iperf -s > out.txt &'
+    h3.cmd(performanceCommand)
 	
     info( '*** Running CLI\n' )
     CLI( net )
     info( '*** Stopping network' )
     net.stop()
-
-
 
 if __name__ == '__main__':
     setLogLevel( 'info' )

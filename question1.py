@@ -48,22 +48,25 @@ class Labo3Topology(Topo):
         self.addLink(switches[6], switches[7], bw=linkbw, delay='1ms')
 
 def question1():
-    # Creating the experiment's topology
+    
+	# Creating the experiment's topology
     topology = Labo3Topology(nbHosts=4, nbSwitches=8, linkbw=10)
     
-    # creating the Mininet object which supports an external controller
-    net = Mininet(topo=topology, controller=RemoteController, link=TCLink)
+	# Connecting the controller to Floodlight Openflow port
+	floodLight = RemoteController('c0', ip='127.0.0.1', port=6653)
     
-    info( '*** Adding controller\n' )
-    
-    # Connecting the controller to Floodlight Openflow port 
-    c0 = net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6653)
+    # Creating the Mininet network
+    net = Mininet(topo=topology,
+                  controller=floodLight,
+                  link=TCLink)
     
     info( '*** Starting network\n')
     # Starting the experiment
     net.start()
-    print "Initializing the experiment"
-    sleep(2)
+	
+	# Sleep is used to ensure a 100% success rate during ping
+    print "Initializing the experiment..."
+    sleep(5)
     
     # Testing network connectivity between all hosts
     net.pingAll()
@@ -74,8 +77,6 @@ def question1():
     # clientcommand = 'iperf -c 10.0.0.3 > client.txt &'
     # h3.cmd(servercommand)
     # h1.cmd(clientcommand)
-    
-    # net.iperf((h3, h1))
     
     CLI( net )
     info( '*** Stopping network' )

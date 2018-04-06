@@ -20,10 +20,16 @@ from time import sleep
 
 class IPerfConfig():
 	def __init__(self, **params):
-	
+		
+		"""
+		  Encapsulates the concept of running various iperf commands.
+		  Commands are intended to be ran in background and append
+		  all traffic to a log file.
+		"""
+		
 	    self.TCPCommands = {
 		    "CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
-			"SERVER" : "TCP" : "sudo iperf –s -t 180 -i 10 >> server.txt &"
+			"SERVER" : "sudo iperf –s -t 180 -i 10 >> server.txt &"
 		}
 		
 		self.UDPCommands = {
@@ -95,7 +101,6 @@ def question1(totalExperimentTime):
     client, server = hosts[0], hosts[2]
     
     # Launching an iperf command running in background
-    # between h1(client) and h3(server).
     # Output will be printed to file.
 	config = IPerfConfig()
     server.cmd(config.TCPCommands["SERVER"])

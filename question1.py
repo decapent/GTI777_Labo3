@@ -18,6 +18,20 @@ from time import time
 from time import sleep
 
 
+class IPerfConfig():
+	def __init__(self, **params):
+	
+	    self.TCPCommands = {
+		    "CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
+			"SERVER" : "TCP" : "sudo iperf –s -t 180 -i 10 >> server.txt &"
+		}
+		
+		self.UDPCommands = {
+			"CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
+			"SERVER" : "sudo iperf -s -u -t 180 -i 10 >> server.txt &"
+		}
+
+
 class Labo3Topology(Topo):
     def __init__(self, nbHosts, nbSwitches, linkbw, **params):
         
@@ -47,13 +61,13 @@ class Labo3Topology(Topo):
         self.addLink(switches[5], switches[6], bw=linkbw, delay='10ms')
         self.addLink(switches[6], switches[7], bw=linkbw, delay='1ms')
 
-def question1():
+def question1(totalExperimentTime):
     
-	# Creating the experiment's topology
+    # Creating the experiment's topology
     topology = Labo3Topology(nbHosts=4, nbSwitches=8, linkbw=10)
     
-	# Connecting the controller to Floodlight Openflow port
-	floodLight = RemoteController('c0', ip='127.0.0.1', port=6653)
+    # Connecting the controller to Floodlight Openflow port
+    floodLight = RemoteController('c0', ip='127.0.0.1', port=6653)
     
     # Creating the Mininet network
     net = Mininet(topo=topology,
@@ -62,26 +76,54 @@ def question1():
     
     info( '*** Starting network\n')
     # Starting the experiment
-    net.start()
-	
-	# Sleep is used to ensure a 100% success rate during ping
-    print "Initializing the experiment..."
-    sleep(5)
+    net.start()	
+    
+    # Sleep is used to ensure a 100% success rate during ping
+    info( "Initializing the experiment..." )
+    sleep(3)
     
     # Testing network connectivity between all hosts
     net.pingAll()
+    info("*** Running the experiment for %s seconds \n" % totalExperimentTime)	
+    
+    # The clock is ticking!
+    start = time()
+    elapsed = 0
+    
+    info("Obtaining client(h1) and server(h3) hosts \n")
+    hosts = [ net.getNodeByName( h ) for h in topology.hosts() ]
+    client, server = hosts[0], hosts[2]
     
     # Launching an iperf command running in background
-    # between h1 and h3. Output will be printed to file.
-    # servercommand = 'iperf –s > server.txt &'
-    # clientcommand = 'iperf -c 10.0.0.3 > client.txt &'
-    # h3.cmd(servercommand)
-    # h1.cmd(clientcommand)
-    
-    CLI( net )
+    # between h1(client) and h3(server).
+    # Output will be printed to file.
+	config = IPerfConfig()
+    server.cmd(config.TCPCommands["SERVER"])
+    client.cmd(config.TCPCommands["CLIENT"])
+	
+    while elapsed < totalExperimentTime:
+	    elapsed = time() - start
+        isUDPTransfer = False
+        if elapsed > 180 and elapsed < 360 and not isUDPTransfer: # Between 3 and 6 minutes
+			server.cmd(config.UDPCommands["SERVER"])
+            client.cmd(config.UDPCommands["CLIENT"])
+		    isUDPTransfer = True
+        elif elapsed > 360 and isUDPTransfer: # After 6 minutes
+            server.cmd(config.TCPCommands["SERVER"])
+            client.cmd(config.TCPCommands["CLIENT"])
+			isUDPTransfer = False
+        
+        # Sleeping the script for 2 seconds. Since commands were
+        # launched in background, sleeping won't interfere with 
+        # the network's traffic.
+		net.ping((client, server))
+        sleep(2)
+
     info( '*** Stopping network' )
     net.stop()
-
+    
 if __name__ == '__main__':
     setLogLevel( 'info' )
-    question1()
+	
+    TOTAL_EXP_TIME = 540 #seconds
+    question1(TOTAL_EXP_TIME)

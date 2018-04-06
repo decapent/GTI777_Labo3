@@ -19,23 +19,23 @@ from time import sleep
 
 
 class IPerfConfig():
-	def __init__(self, **params):
-		
-		"""
-		  Encapsulates the concept of running various iperf commands.
-		  Commands are intended to be ran in background and append
-		  all traffic to a log file.
-		"""
-		
-	    self.TCPCommands = {
-		    "CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
-			"SERVER" : "sudo iperf –s -t 180 -i 10 >> server.txt &"
-		}
-		
-		self.UDPCommands = {
-			"CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
-			"SERVER" : "sudo iperf -s -u -t 180 -i 10 >> server.txt &"
-		}
+    def __init__(self, **params):
+        
+        """
+          Encapsulates the concept of running various iperf commands.
+          Commands are intended to be ran in background and append
+          all traffic to a log file.
+        """
+        
+        self.TCPCommands = {
+            "CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
+            "SERVER" : "sudo iperf –s -t 180 -i 10 >> server.txt &"
+        }
+        
+        self.UDPCommands = {
+            "CLIENT" : "sudo iperf -c 10.0.0.3 -u -t 180 -i 10 >> client.txt &",
+            "SERVER" : "sudo iperf -s -u -t 180 -i 10 >> server.txt &"
+        }
 
 
 class Labo3Topology(Topo):
@@ -85,7 +85,7 @@ def question1(totalExperimentTime):
     net.start()	
     
     # Sleep is used to ensure a 100% success rate during ping
-    info( "Initializing the experiment..." )
+    info( "Initializing the experiment... \n" )
     sleep(3)
     
     # Testing network connectivity between all hosts
@@ -102,27 +102,27 @@ def question1(totalExperimentTime):
     
     # Launching an iperf command running in background
     # Output will be printed to file.
-	config = IPerfConfig()
+    config = IPerfConfig()
     server.cmd(config.TCPCommands["SERVER"])
     client.cmd(config.TCPCommands["CLIENT"])
 	
     while elapsed < totalExperimentTime:
-	    elapsed = time() - start
+        elapsed = time() - start
         isUDPTransfer = False
         if elapsed > 180 and elapsed < 360 and not isUDPTransfer: # Between 3 and 6 minutes
-			server.cmd(config.UDPCommands["SERVER"])
+            server.cmd(config.UDPCommands["SERVER"])
             client.cmd(config.UDPCommands["CLIENT"])
-		    isUDPTransfer = True
+            isUDPTransfer = True
         elif elapsed > 360 and isUDPTransfer: # After 6 minutes
             server.cmd(config.TCPCommands["SERVER"])
             client.cmd(config.TCPCommands["CLIENT"])
-			isUDPTransfer = False
+            isUDPTransfer = False
         
         # Sleeping the script for 2 seconds. Since commands were
         # launched in background, sleeping won't interfere with 
         # the network's traffic.
-		net.ping((client, server))
-        sleep(2)
+	    net.ping((client, server))
+        sleep(10)
 
     info( '*** Stopping network' )
     net.stop()

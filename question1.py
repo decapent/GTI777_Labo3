@@ -26,13 +26,13 @@ import logging
 class IPerfConfig():
     def __init__(self, **params):        
         self.TCPCommands = {
-            "CLIENT" : "iperf -c 10.0.0.3 -t 180 -i 10",
-            "SERVER" : "iperf –s -t 180 -i 10"
+            "CLIENT" : "iperf -c 10.0.0.3 -t 180 -i 10 &",
+            "SERVER" : "iperf –s -t 180 -i 10 &"
         }
         
         self.UDPCommands = {
-            "CLIENT" : "iperf -c 10.0.0.3 -u -t 180 -i 10 -p 3000",
-            "SERVER" : "iperf -s -u -t 180 -i 10 -p 3000"
+            "CLIENT" : "iperf -c 10.0.0.3 -u -t 180 -i 10 -p 3000 &",
+            "SERVER" : "iperf -s -u -t 180 -i 10 -p 3000 &"
         }
 
 

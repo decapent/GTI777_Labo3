@@ -16,28 +16,30 @@ from mininet.link import TCLink
 from mininet.topo import Topo
 from time import time
 from time import sleep
+import logging
 
-
+"""
+  Encapsulates the concept of running various iperf commands.
+  Commands are intended to be ran in background and append
+  all traffic to a log file.
+"""
 class IPerfConfig():
-    def __init__(self, **params):
-        
-        """
-          Encapsulates the concept of running various iperf commands.
-          Commands are intended to be ran in background and append
-          all traffic to a log file.
-        """
-        
+    def __init__(self, **params):        
         self.TCPCommands = {
-            "CLIENT" : "sudo iperf -c 10.0.0.3 -t 180 -i 10 >> client.txt &",
-            "SERVER" : "sudo iperf –s -t 180 -i 10 >> server.txt &"
+            "CLIENT" : "iperf -c 10.0.0.3 -t 180 -i 10",
+            "SERVER" : "iperf –s -t 180 -i 10"
         }
         
         self.UDPCommands = {
-            "CLIENT" : "sudo iperf -c 10.0.0.3 -u -t 180 -i 10 >> client.txt &",
-            "SERVER" : "sudo iperf -s -u -t 180 -i 10 >> server.txt &"
+            "CLIENT" : "iperf -c 10.0.0.3 -u -t 180 -i 10 -p 3000",
+            "SERVER" : "iperf -s -u -t 180 -i 10 -p 3000"
         }
 
 
+"""
+  Represents the topology to be used by the experiment. This class
+  inherits it's behavior from the mininet.topo base class.
+"""
 class Labo3Topology(Topo):
     def __init__(self, nbHosts, nbSwitches, linkbw, **params):
         
@@ -67,7 +69,17 @@ class Labo3Topology(Topo):
         self.addLink(switches[5], switches[6], bw=linkbw, delay='10ms')
         self.addLink(switches[6], switches[7], bw=linkbw, delay='1ms')
 
+def initialize_logger():
+    logger = logging.getLogger('labo3')
+    handler = logging.FileHandler('/home/mininet/question1.out')
+    formatter = logging.Formatter('%(asctime)s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    return logger	
+
 def question1(totalExperimentTime):
+    logger = initialize_logger()
     
     # Creating the experiment's topology
     topology = Labo3Topology(nbHosts=4, nbSwitches=8, linkbw=10)
@@ -81,15 +93,18 @@ def question1(totalExperimentTime):
                   link=TCLink)
     
     info( '*** Starting network\n')
+    logger.info('*** Starting network\n')
     # Starting the experiment
     net.start()	
     
     # Sleep is used to ensure a 100% success rate during ping
     info( "Initializing the experiment... \n" )
-    sleep(3)
+    logger.info("Initializing the experiment... \n")
+    sleep(4)
     
     # Testing network connectivity between all hosts
-    net.pingAll()
+    pingAllResult = net.pingAll()
+    logger.info("Testing connectivity between all hosts %s" % pingAllResult)
     info("*** Running the experiment for %s seconds \n" % totalExperimentTime)	
     
     # The clock is ticking!
@@ -97,6 +112,7 @@ def question1(totalExperimentTime):
     elapsed = 0
     
     info("Obtaining client(h1) and server(h3) hosts \n")
+    logger.info("Obtaining client(h1) and server(h3) hosts \n")
     hosts = [ net.getNodeByName( h ) for h in topology.hosts() ]
     client, server = hosts[0], hosts[2]
     
@@ -105,7 +121,7 @@ def question1(totalExperimentTime):
     config = IPerfConfig()
     server.cmd(config.TCPCommands["SERVER"])
     client.cmd(config.TCPCommands["CLIENT"])
-	
+    
     while elapsed < totalExperimentTime:
         elapsed = time() - start
         isUDPTransfer = False
@@ -118,13 +134,15 @@ def question1(totalExperimentTime):
             client.cmd(config.TCPCommands["CLIENT"])
             isUDPTransfer = False
         
-        # Sleeping the script for 2 seconds. Since commands were
-        # launched in background, sleeping won't interfere with 
+        # Sleeping the script for 10 seconds. Since commands were
+        # launched in background, sleeping the script won't interfere with 
         # the network's traffic.
-	    net.ping((client, server))
+        pingResult = net.ping((client, server))
+        logger.info("Ping between h3 and h1 -> %s" % pingResult)
         sleep(10)
-
-    info( '*** Stopping network' )
+    
+    info('*** Stopping network')
+    logger.info('*** Stopping network')
     net.stop()
     
 if __name__ == '__main__':

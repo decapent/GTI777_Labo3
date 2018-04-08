@@ -1,0 +1,25 @@
+2018-04-04 17:06:15,224 *** Starting network
+
+2018-04-04 17:06:15,758 Initializing the experiment... 
+
+2018-04-04 17:06:30,499 Testing connectivity between all hosts 8.33333333333
+2018-04-04 17:06:30,500 Obtaining client(h1) and server(h3) hosts 
+
+2018-04-04 17:06:30,675 Ping between h3 and h1 -> 0.0
+2018-04-04 17:06:40,800 Ping between h3 and h1 -> 0.0
+2018-04-04 17:06:50,933 Ping between h3 and h1 -> 0.0
+2018-04-04 17:07:01,064 Ping between h3 and h1 -> 0.0
+2018-04-04 17:07:11,191 Ping between h3 and h1 -> 0.0
+2018-04-04 17:07:21,318 Ping between h3 and h1 -> 0.0
+2018-04-04 17:07:31,449 Ping between h3 and h1 -> 0.0
+2018-04-04 17:07:41,579 Ping between h3 and h1 -> 0.0
+2018-04-04 17:07:51,706 Ping between h3 and h1 -> 0.0
+2018-04-04 17:08:01,837 Ping between h3 and h1 -> 0.0
+2018-04-04 17:08:11,961 Ping between h3 and h1 -> 0.0
+2018-04-04 17:08:22,085 Ping between h3 and h1 -> 0.0
+2018-04-04 17:08:32,209 Ping between h3 and h1 -> 0.0
+2018-04-04 17:08:42,336 Ping between h3 and h1 -> 0.0
+2018-04-04 17:08:52,463 Ping between h3 and h1 -> 0.0
+2018-04-04 17:09:02,594 Ping between h3 and h1 -> 0.0
+2018-04-04 17:09:12,718 Ping between h3 and h1 -> 0.0
+2018-04-04 17:09:22,849 Ping between h3 and h1 -> 0.0

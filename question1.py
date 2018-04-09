@@ -139,11 +139,13 @@ def question1(totalExperimentTime):
         elapsed = time() - start
         if elapsed > 180 and elapsed < 360 and not isUDPTransfer:
             # Between 3 and 6 minutes, client and server will exchange UDP packets
+            logger.info("Starting UDP transfer...")
             server.cmd(config.UDPCommands["SERVER"])
             client.cmd(config.UDPCommands["CLIENT"])
             isUDPTransfer = True
-        elif elapsed > 360 and isUDPTransfer: 
+        elif elapsed > 360 and isUDPTransfer:		
             # After 6 minutes, client and server exchange TCP packets again
+            logger.info("Fallback on TCP transfer...")
             server.cmd(config.TCPCommands["SERVER"])
             client.cmd(config.TCPCommands["CLIENT"])
             isUDPTransfer = False

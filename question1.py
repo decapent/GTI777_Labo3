@@ -46,15 +46,15 @@ class Labo3Topology(Topo):
         # Base class initialization
         Topo.__init__(self, **params)
         
-        # Creating hosts
+        # Creating hosts with sequential name and ip addresses
         hosts = [self.addHost('h%s' % h, ip='10.0.0.%s' % h) 
             for h in range(1, nbHosts+1)]
         
-        # Creating switches
+        # Creating switches with sequential name
         switches = [self.addSwitch('s%s' % s) 
             for s in range(1, nbSwitches+1)] 
         
-        # Creating links
+        # Creating links. Hardcoded to follow the required topology
         self.addLink(hosts[0], switches[0], bw=linkbw, delay='5ms')
         self.addLink(hosts[1], switches[0], bw=linkbw, delay='4ms')
         self.addLink(hosts[2], switches[7], bw=linkbw, delay='6ms')
@@ -69,12 +69,22 @@ class Labo3Topology(Topo):
         self.addLink(switches[5], switches[6], bw=linkbw, delay='10ms')
         self.addLink(switches[6], switches[7], bw=linkbw, delay='1ms')
 
+"""
+  Initializes a logger object that aims at logging all that is
+  happening to the question1.out file.
+"""
 def initialize_logger():
     logger = logging.getLogger('labo3')
+	
+	# Handle file write operations
     handler = logging.FileHandler('/home/mininet/question1.out')
+	
+	# Formatting the message being loggued with a timestamp followed by the message
     formatter = logging.Formatter('%(asctime)s %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+	
+	# Logging all information
     logger.setLevel(logging.INFO)
     return logger	
 
@@ -87,7 +97,7 @@ def question1(totalExperimentTime):
     # Connecting the controller to Floodlight Openflow port
     floodLight = RemoteController('c0', ip='127.0.0.1', port=6653)
     
-    # Creating the Mininet network
+    # Creating the Mininet network with desired topology and remote controller
     net = Mininet(topo=topology,
                   controller=floodLight,
                   link=TCLink)
@@ -116,15 +126,17 @@ def question1(totalExperimentTime):
     hosts = [ net.getNodeByName( h ) for h in topology.hosts() ]
     client, server = hosts[0], hosts[2]
     
-    # Launching an iperf command running in background
-    # Output will be printed to file.
+    # Obtaining the iPerf configs that will be used during the experiment.
     config = IPerfConfig()
     server.cmd(config.TCPCommands["SERVER"])
     client.cmd(config.TCPCommands["CLIENT"])
     
+	# Starting with TCP transfer
+	isUDPTransfer = False
     while elapsed < totalExperimentTime:
+	    # Calculating the elapsed time since the beginning of the experiment
         elapsed = time() - start
-        isUDPTransfer = False
+		
         if elapsed > 180 and elapsed < 360 and not isUDPTransfer: # Between 3 and 6 minutes
             server.cmd(config.UDPCommands["SERVER"])
             client.cmd(config.UDPCommands["CLIENT"])

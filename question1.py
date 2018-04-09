@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-Cours GTI100
+Cours GTI777
 Lab 3 - Partie 2
 ----------------------------------
 Nom et prénom : LAVALLEE, PATRICK
@@ -26,13 +26,13 @@ import logging
 class IPerfConfig():
     def __init__(self, **params):        
         self.TCPCommands = {
-            "CLIENT" : "iperf -c 10.0.0.3 -t 180 -i 10 &",
-            "SERVER" : "iperf –s -t 180 -i 10 &"
+            "CLIENT" : "iperf -c 10.0.0.3 -t 180 -i 10 >> client.log &",
+            "SERVER" : "iperf –s -t 180 -i 10 >> server.log &"
         }
         
         self.UDPCommands = {
-            "CLIENT" : "iperf -c 10.0.0.3 -u -t 180 -i 10 -p 3000 &",
-            "SERVER" : "iperf -s -u -t 180 -i 10 -p 3000 &"
+            "CLIENT" : "iperf -c 10.0.0.3 -u -t 180 -i 10 -p 3000 >> client.log &",
+            "SERVER" : "iperf -s -u -t 180 -i 10 -p 3000 >> server.log &"
         }
 
 
@@ -54,7 +54,8 @@ class Labo3Topology(Topo):
         switches = [self.addSwitch('s%s' % s) 
             for s in range(1, nbSwitches+1)] 
         
-        # Creating links. Hardcoded to follow the required topology
+        # Creating links with specified bandwidth. 
+        # Hardcoded to follow the required topology
         self.addLink(hosts[0], switches[0], bw=linkbw, delay='5ms')
         self.addLink(hosts[1], switches[0], bw=linkbw, delay='4ms')
         self.addLink(hosts[2], switches[7], bw=linkbw, delay='6ms')
@@ -75,16 +76,16 @@ class Labo3Topology(Topo):
 """
 def initialize_logger():
     logger = logging.getLogger('labo3')
-	
-	# Handle file write operations
+    
+    # Handle file write operations
     handler = logging.FileHandler('/home/mininet/question1.out')
-	
-	# Formatting the message being loggued with a timestamp followed by the message
+    
+    # Formatting the message being loggued with a timestamp followed by the message
     formatter = logging.Formatter('%(asctime)s %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-	
-	# Logging all information
+    
+    # Logging all information
     logger.setLevel(logging.INFO)
     return logger	
 
@@ -123,7 +124,7 @@ def question1(totalExperimentTime):
     
     info("Obtaining client(h1) and server(h3) hosts \n")
     logger.info("Obtaining client(h1) and server(h3) hosts \n")
-    hosts = [ net.getNodeByName( h ) for h in topology.hosts() ]
+    hosts = [ net.getNodeByName(h) for h in topology.hosts() ]
     client, server = hosts[0], hosts[2]
     
     # Obtaining the iPerf configs that will be used during the experiment.
@@ -131,17 +132,18 @@ def question1(totalExperimentTime):
     server.cmd(config.TCPCommands["SERVER"])
     client.cmd(config.TCPCommands["CLIENT"])
     
-	# Starting with TCP transfer
-	isUDPTransfer = False
+    # Starting with TCP packet transfers
+    isUDPTransfer = False
     while elapsed < totalExperimentTime:
-	    # Calculating the elapsed time since the beginning of the experiment
+        # Calculating the elapsed time since the beginning of the experiment
         elapsed = time() - start
-		
-        if elapsed > 180 and elapsed < 360 and not isUDPTransfer: # Between 3 and 6 minutes
+        if elapsed > 180 and elapsed < 360 and not isUDPTransfer:
+            # Between 3 and 6 minutes, client and server will exchange UDP packets
             server.cmd(config.UDPCommands["SERVER"])
             client.cmd(config.UDPCommands["CLIENT"])
             isUDPTransfer = True
-        elif elapsed > 360 and isUDPTransfer: # After 6 minutes
+        elif elapsed > 360 and isUDPTransfer: 
+            # After 6 minutes, client and server exchange TCP packets again
             server.cmd(config.TCPCommands["SERVER"])
             client.cmd(config.TCPCommands["CLIENT"])
             isUDPTransfer = False
